@@ -4,7 +4,7 @@
 
 Before you begin, ensure you have the following installed on your machine:
 
-- [python](https://python.org/) (version 10.x-12.x )
+- [python](https://python.org/) (version 10.x-12.x)
 
 ### Steps
 
@@ -17,9 +17,21 @@ Before you begin, ensure you have the following installed on your machine:
    cd OrtBackendApi
    ```
 
+2. **Create and Activate Virtual Environment**
+
+   Create a virtual environment and activate it:
+   ```sh
+   python -m venv venv
+   # On Windows
+   .\venv\Scripts\activate
+   # On macOS/Linux
+   source venv/bin/activate
+   ```
+
 2. **Install Dependencies**
 
-   Navigate to the project directory and install the required dependencies:
+    Navigate to the project directory and install the required dependencies:
+
    ```
    pip install requirements.txt
    ```
@@ -36,3 +48,34 @@ Before you begin, ensure you have the following installed on your machine:
    ```
    fastapi dev main.py
    ```
+
+5. **To leave the Environment**
+
+    ```
+    deactivate
+    ```
+
+## Installation Guide
+
+### Adding dependencies to the env
+
+1. **Acticate your Virtual Environment**
+
+    ```
+    # On Windows
+    .\venv\Scripts\activate
+    # On macOS/Linux
+    source venv/bin/activate
+    ```
+
+2. **Install your desired Dependencies**
+
+    ```
+    pip install <the wanted dependencies>
+    ``` 
+
+3. **Add Dependencies to the requirement File**
+
+    ```
+    pip freeze > requirements.txt
+    ```
