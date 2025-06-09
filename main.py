@@ -2,20 +2,23 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from motorController import MotorController
+
 import cv2
+import time
+from picamera2 import Picamera2, Preview
 
 app = FastAPI()
+motors = MotorController()
 
-origins = [
-    "http://localhost:3000",  # React app running on localhost:3000
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+
 )
 
 class StandardInstruction(BaseModel):
@@ -30,19 +33,43 @@ class GranularInstruction(BaseModel):
     duration: float
 
 # Open the webcam (use 0 for the default camera, or provide a video file path)
+gst_pipeline = (
+	"libcamerasrc ! video/x-raw,width=1280,height=720,framerate=30/1 "
+	"! videoconvert ! appsink"
+)
 video_source = 0  # Change to a file path for a saved video
-cap_default = cv2.VideoCapture(video_source)
+cap_default = 0
+
+
+picam1 = Picamera2(1)
+picam1.resolution = (320,240)
+camera_config = picam1.create_preview_configuration()
+picam1.configure(camera_config)
+picam1.start_preview(Preview.DRM)
+picam1.start()
+
+picam2 = Picamera2(0)
+picam2.resolution = (320,240)
+camera_config = picam2.create_preview_configuration()
+picam2.configure(camera_config)
+picam2.start_preview(Preview.DRM)
+picam2.start()
+
+cams = [picam2, picam1]
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello"}
+    return {"message": "testing cors"}
 
 def generate_frames(cap=cap_default):
     while True:
-        success, frame = cap.read()
+        frameRaw = cams[cap].capture_array()
+        frameRaw = frameRaw[:, :, [2,1,0]]
+        success, buffer = cv2.imencode('.png', frameRaw)
         if not success:
-            break
-        _, buffer = cv2.imencode('.jpg', frame)
+          print("shit")
+          break
+        #_, buffer = cv2.imencode('.jpg', frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
@@ -53,8 +80,7 @@ def video_feed():
 ## add video feeds for multiple cameras
 @app.get("/video_feed/{camera_id}")
 def video_feed(camera_id: int):
-    cap = cv2.VideoCapture(camera_id)
-    return StreamingResponse(generate_frames(cap), media_type="multipart/x-mixed-replace; boundary=frame")
+    return StreamingResponse(generate_frames(camera_id), media_type="multipart/x-mixed-replace; boundary=frame")
 
 ## add endpoints for the controls
 # Motor specific controls
@@ -85,4 +111,10 @@ async def granular_movement(instruction: GranularInstruction):
     print("Rear Left:", instruction.rear_left)
     print("Rear Right:", instruction.rear_right)
     print("Duration:", instruction.duration)
+    motors.lf_activate(instruction.front_left/100)
+    motors.rf_activate(instruction.front_right/100)    
+    motors.lr_activate(instruction.rear_left/100)
+    motors.rr_activate(instruction.rear_right/100)
+    time.sleep(instruction.duration)
+    motors.all_off()
     return {"message": "Granular movement activated."}
