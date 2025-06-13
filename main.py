@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from motorController import MotorController
+from controller import Controller
 
 import cv2
 import time
 from picamera2 import Picamera2, Preview
 
 app = FastAPI()
-motors = MotorController()
+controller = Controller()
 
 
 app.add_middleware(
@@ -41,21 +41,21 @@ video_source = 0  # Change to a file path for a saved video
 cap_default = 0
 
 
-picam1 = Picamera2(1)
-picam1.resolution = (320,240)
-camera_config = picam1.create_preview_configuration()
-picam1.configure(camera_config)
-picam1.start_preview(Preview.DRM)
-picam1.start()
-
-picam2 = Picamera2(0)
-picam2.resolution = (320,240)
-camera_config = picam2.create_preview_configuration()
-picam2.configure(camera_config)
-picam2.start_preview(Preview.DRM)
-picam2.start()
-
-cams = [picam2, picam1]
+#picam1 = Picamera2(1)
+#picam1.resolution = (320,240)
+#camera_config = picam1.create_preview_configuration()
+#picam1.configure(camera_config)
+#picam1.start_preview(Preview.DRM)
+#picam1.start()
+#
+#picam2 = Picamera2(0)
+#picam2.resolution = (320,240)
+#camera_config = picam2.create_preview_configuration()
+#picam2.configure(camera_config)
+#picam2.start_preview(Preview.DRM)
+#picam2.start()
+#
+#cams = [picam2, picam1]
 
 @app.get("/")
 def read_root():
@@ -90,14 +90,19 @@ async def standard_movement(instruction: StandardInstruction):
     print(f"Received instruction: {instruction.instruction}, value: {instruction.value}")
     if instruction.instruction == "forward":
         print("Moving forward by", instruction.value, "units")
+        controller.moveForward(instruction.value/100)
     elif instruction.instruction == "backward":
         print("Moving backward by", instruction.value, "units")
+        controller.moveBackward(-instruction.value/100)
     elif instruction.instruction == "left":
         print("Turning left by", instruction.value, "degrees")
+        controller.turnCounterClockwise(instruction.value)
     elif instruction.instruction == "right":
         print("Turning right by", instruction.value, "degrees")
+        controller.turnClockwise(instruction.value)
     elif instruction.instruction == "face":
         print("Turning to face direction:", instruction.value)
+        controller.faceDirection(instruction.value)
     else:
         print("Unknown instruction")       
     return {"message": "Standard movement activated."}
@@ -111,10 +116,5 @@ async def granular_movement(instruction: GranularInstruction):
     print("Rear Left:", instruction.rear_left)
     print("Rear Right:", instruction.rear_right)
     print("Duration:", instruction.duration)
-    motors.lf_activate(instruction.front_left/100)
-    motors.rf_activate(instruction.front_right/100)    
-    motors.lr_activate(instruction.rear_left/100)
-    motors.rr_activate(instruction.rear_right/100)
-    time.sleep(instruction.duration)
-    motors.all_off()
+    controller.granular(instruction)
     return {"message": "Granular movement activated."}
