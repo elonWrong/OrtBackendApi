@@ -1,0 +1,3 @@
+    CMPS12_REG_ACCRAW_X        = 0x0C  # Raw accelerometer X-axis data (16-bit) - signed
+    CMPS12_REG_ACCRAW_Y        = 0x0E  # Raw accelerometer Y-axis data (16-bit) - signed
+    CMPS12_REG_ACCRAW_Z        = 0x10  # Raw accelerometer Z-axis data (16-bit) - signed
