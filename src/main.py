@@ -3,14 +3,14 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from controller import Controller
+from camera import Camera
 
-import cv2
-import time
-from picamera2 import Picamera2, Preview
 
 app = FastAPI()
 controller = Controller()
-
+leftCam = Camera(0)
+rightCam = Camera(1)
+cams = [leftCam, rightCam]
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,55 +32,26 @@ class GranularInstruction(BaseModel):
     rear_right: int
     duration: float
 
-# Open the webcam (use 0 for the default camera, or provide a video file path)
-gst_pipeline = (
-	"libcamerasrc ! video/x-raw,width=1280,height=720,framerate=30/1 "
-	"! videoconvert ! appsink"
-)
-video_source = 0  # Change to a file path for a saved video
-cap_default = 0
-
-
-#picam1 = Picamera2(1)
-#picam1.resolution = (320,240)
-#camera_config = picam1.create_preview_configuration()
-#picam1.configure(camera_config)
-#picam1.start_preview(Preview.DRM)
-#picam1.start()
-#
-#picam2 = Picamera2(0)
-#picam2.resolution = (320,240)
-#camera_config = picam2.create_preview_configuration()
-#picam2.configure(camera_config)
-#picam2.start_preview(Preview.DRM)
-#picam2.start()
-#
-#cams = [picam2, picam1]
 
 @app.get("/")
 def read_root():
     return {"message": "testing cors"}
 
-def generate_frames(cap=cap_default):
-    while True:
-        frameRaw = cams[cap].capture_array()
-        frameRaw = frameRaw[:, :, [2,1,0]]
-        success, buffer = cv2.imencode('.png', frameRaw)
-        if not success:
-          print("shit")
-          break
-        #_, buffer = cv2.imencode('.jpg', frame)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
 @app.get("/video_feed")
 def video_feed():
-    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+    return StreamingResponse(leftCam.generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 ## add video feeds for multiple cameras
 @app.get("/video_feed/{camera_id}")
 def video_feed(camera_id: int):
-    return StreamingResponse(generate_frames(camera_id), media_type="multipart/x-mixed-replace; boundary=frame")
+    if camera_id < len(cams):
+        return StreamingResponse(cams[camera_id].generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+    return {"error": "Camera not found"}
+
+@app.get("/imu")
+def get_imu_data():
+    return StreamingResponse(controller.generateStream(), media_type="application/json")
 
 ## add endpoints for the controls
 # Motor specific controls
