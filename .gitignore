@@ -17,6 +17,7 @@ parts/
 sdist/
 var/
 venv/
+env/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -25,9 +26,10 @@ venv/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit test / coverage reports / dev Environment
 .tox/
 .coverage
 .cache
 nosetests.xml
 coverage.xml
+OrtBacnendApi.code-workspace
