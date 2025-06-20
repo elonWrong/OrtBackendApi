@@ -4,7 +4,10 @@ from PIL import Image
 import os
 
 # Directory containing images
-folder = 'TestCode/CalibrationImages'
+folder = 'TestCode/CalibrationImages/chessboard'
+
+# print names of all files in the directory folder
+print("Files in directory:", os.listdir(folder))
 
 # Get all image files (filter by extension)
 images = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
@@ -43,9 +46,13 @@ for fname in images:
         imgpoints.append(corners2)
  
         # Draw and display the corners
-        #cv.drawChessboardCorners(img, grid, corners2, ret)
-        #cv.imshow('img', img)
-        #cv.waitKey(3000)
+        cv.drawChessboardCorners(img, grid, corners2, ret)
+        cv.imshow('img', img)
+        cv.waitKey(3000)
+
+if not objpoints or not imgpoints:
+    print("No chessboard corners were found in any image. Calibration cannot proceed.")
+    exit(1)
 
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
