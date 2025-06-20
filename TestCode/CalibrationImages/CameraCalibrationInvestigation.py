@@ -17,7 +17,7 @@ images = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('.p
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-grid = (8,6)  # Number of inner corners per a chessboard row and column
+grid = (7,7)  # Number of inner corners per a chessboard row and column
  
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((grid[0]*grid[1],3), np.float32)
