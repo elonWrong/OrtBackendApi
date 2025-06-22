@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from controller import Controller
 from camera import Camera
+import cv2
 
 
 app = FastAPI()
@@ -32,7 +33,7 @@ class GranularInstruction(BaseModel):
     rear_right: int
     duration: float
 
-
+cap = cv2.VideoCapture(0)
 @app.get("/")
 def read_root():
     return {"message": "testing cors"}
@@ -40,7 +41,15 @@ def read_root():
 
 @app.get("/video_feed")
 def video_feed():
-    return StreamingResponse(leftCam.generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+    def generate_frames():
+         while True:
+                success, frame = cap.read()
+                if not success:
+                    break
+                _, buffer = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 ## add video feeds for multiple cameras
 @app.get("/video_feed/{camera_id}")
