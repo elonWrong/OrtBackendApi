@@ -12,7 +12,7 @@ try:
 except ImportError:
     live = False
 
-
+frame_count = 0
 frame_duration = 5  # seconds
 
 num_disparities = 16 * 2  # Must be divisible by 16
@@ -83,8 +83,18 @@ num_disparities_slider.on_changed(update_num_disparities)
 block_size_slider.on_changed(update_block_size)
 
 def get_frames():
+    global frame_count
+    global left_frame, right_frame
+    frame_count += 1
+    if not live:
+        raise RuntimeError("Cameras are not available in this environment.")
     left_frame = left_camera.get_frame()
     right_frame = right_camera.get_frame()
+    if left_frame is None or right_frame is None:
+        raise ValueError("Failed to capture frames from cameras.")
+    cv.imwrite(f"TestCode\\DepthImages\\left{frame_count}.jpg", left_frame)
+    cv.imwrite(f"TestCode\\DepthImages\\right{frame_count}.jpg", right_frame)
+
     return left_frame, right_frame
 
 def get_frame_placeholder(index = 0):

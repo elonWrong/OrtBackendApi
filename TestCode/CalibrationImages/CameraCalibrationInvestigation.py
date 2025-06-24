@@ -10,7 +10,7 @@ folder = 'TestCode/CalibrationImages/chessboard'
 print("Files in directory:", os.listdir(folder))
 
 # Get all image files (filter by extension)
-images = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
+images = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('R.png', 'R.jpg', 'R.jpeg'))]
 
 # Open all images
  
