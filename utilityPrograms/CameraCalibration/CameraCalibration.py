@@ -1,12 +1,12 @@
 from camera2 import Camera
 import cv2 as cv
 
-imageiterator = 14
+imageiterator = 0
 
 
 grid = (7,7)
 
-cam = Camera(0)
+cam = Camera(1)
 
 
 
@@ -34,7 +34,7 @@ while (running):
 			cv.imshow("visualise", cam.get_frame())
 			cv.waitKey(3000)
 	
-	cv.imwrite("CalIm" + str(imageiterator) + ".jpg", frame)
+	cv.imwrite("CalIm" + str(imageiterator) + "R.jpg", frame)
 	
 	imageiterator = imageiterator + 1
 
