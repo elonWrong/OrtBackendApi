@@ -1,15 +1,13 @@
 from camera2 import Camera
 import cv2 as cv
 
-imageiterator = 14
+imageiterator = 0
 
 
 grid = (7,7)
 
 cam = Camera(0)
 rightCam = Camera(1)
-
-
 
 running = True
 while (running):
@@ -46,5 +44,6 @@ while (running):
 
 	cv.imwrite("CalImLeft" + str(imageiterator) + ".jpg", frame)
 	cv.imwrite("CalImRight" + str(imageiterator) + ".jpg", rightFrame)
+
 	imageiterator = imageiterator + 1
 
