@@ -4,7 +4,7 @@ import cv2 as cv
 imageiterator = 0
 
 
-grid = (7,7)
+grid = (6,6)
 
 cam = Camera(0)
 rightCam = Camera(1)
