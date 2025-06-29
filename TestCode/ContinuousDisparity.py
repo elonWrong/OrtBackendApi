@@ -15,6 +15,18 @@ except ImportError:
 frame_count = 0
 frame_duration = 5  # seconds
 
+calib = np.load('stereo_params.npz')
+K1, dist1 = calib['K1'], calib['dist1']
+K2, dist2 = calib['K2'], calib['dist2']
+R1, R2 = calib['R1'], calib['R2']
+P1, P2 = calib['P1'], calib['P2']
+Q = calib['Q']
+
+w, h = 1280, 720  # Assuming a fixed resolution for the cameras
+
+map1L, map2L = cv.initUndistortRectifyMap(K1, dist1, R1, P1, (w, h), cv.CV_16SC2)
+map1R, map2R = cv.initUndistortRectifyMap(K2, dist2, R2, P2, (w, h), cv.CV_16SC2)
+
 num_disparities = 16 * 2  # Must be divisible by 16
 block_size = 7  # Must be odd
 unique_ratio = 10
@@ -82,6 +94,11 @@ dur_slider.on_changed(update_frame_duration)
 num_disparities_slider.on_changed(update_num_disparities)
 block_size_slider.on_changed(update_block_size)
 
+def rectify_images(left_frame, right_frame):
+    rectifiedL = cv.remap(left_frame, map1L, map2L, cv.INTER_LINEAR)
+    rectifiedR = cv.remap(right_frame, map1R, map2R, cv.INTER_LINEAR)
+    return rectifiedL, rectifiedR
+
 def get_frames():
     global frame_count
     global left_frame, right_frame
@@ -90,18 +107,22 @@ def get_frames():
         raise RuntimeError("Cameras are not available in this environment.")
     left_frame = left_camera.get_frame()
     right_frame = right_camera.get_frame()
+
+    rectifiedL, rectifiedR = rectify_images(left_frame, right_frame)
+
     if left_frame is None or right_frame is None:
         raise ValueError("Failed to capture frames from cameras.")
     cv.imwrite(f"TestCode\\DepthImages\\left{frame_count}.jpg", left_frame)
     cv.imwrite(f"TestCode\\DepthImages\\right{frame_count}.jpg", right_frame)
 
-    return left_frame, right_frame
+    return rectifiedL, rectifiedR
 
 def get_frame_placeholder(index = 0):
     left = cv.imread(f"TestCode\\testImages\\cam1Image{index}.jpg")
     right = cv.imread(f"TestCode\\testImages\\cam2Image{index}.jpg")  
     if left is None or right is None:
         raise FileNotFoundError(f"Images for index {index} not found.")
+    left, right = rectify_images(left, right)
     return left, right
 
 def update_plot(left_frame, right_frame, disparity_map):

@@ -5,6 +5,28 @@ import numpy as np
 img2 = cv2.imread('TestCode\\CalibrationImages\\left.jpg')  # Base image
 img1 = cv2.imread('TestCode\\CalibrationImages\\right.jpg')  # Image to overlay
 
+h, w = img1.shape[:2]
+
+calib = np.load('stereo_params.npz')
+K1, dist1 = calib['K1'], calib['dist1']
+K2, dist2 = calib['K2'], calib['dist2']
+R1, R2 = calib['R1'], calib['R2']
+P1, P2 = calib['P1'], calib['P2']
+Q = calib['Q']
+
+# Compute rectification maps
+map1L, map2L = cv2.initUndistortRectifyMap(K1, dist1, R1, P1, (w, h), cv2.CV_16SC2)
+map1R, map2R = cv2.initUndistortRectifyMap(K2, dist2, R2, P2, (w, h), cv2.CV_16SC2)
+
+# Apply remap (rectify images)
+rectifiedL = cv2.remap(img2, map1L, map2L, cv2.INTER_LINEAR)
+rectifiedR = cv2.remap(img1, map1R, map2R, cv2.INTER_LINEAR)
+
+cv2.imshow('Rectified Left', rectifiedL)
+cv2.imshow('Rectified Right', rectifiedR)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
 if img1 is None or img2 is None:
     raise FileNotFoundError("Make sure both 'image1.jpg' and 'image2.jpg' exist in the same folder")
 
