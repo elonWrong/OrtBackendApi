@@ -67,11 +67,11 @@ ret, _, _, _, _, R, T, E, F = cv2.stereoCalibrate(
 )
 
 # ==== RECTIFICATION ====
-R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(K1, dist1, K2, dist2, img_size, R, T)
+R1, R2, P1, P2, Q, ROI1, ROI2 = cv2.stereoRectify(K1, dist1, K2, dist2, img_size, R, T)
 
 # ==== SAVE PARAMETERS ====
 np.savez('stereo_params.npz',
          K1=K1, dist1=dist1, K2=K2, dist2=dist2,
-         R=R, T=T, R1=R1, R2=R2, P1=P1, P2=P2, Q=Q)
+         R=R, T=T, R1=R1, R2=R2, P1=P1, P2=P2, Q=Q, ROI1=ROI1, ROI2=ROI2)
 
 print("Stereo calibration complete. Parameters saved to 'stereo_params.npz'")
