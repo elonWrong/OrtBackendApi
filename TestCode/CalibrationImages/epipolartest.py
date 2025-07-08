@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 # Load images
-img2 = cv2.imread('utilityPrograms\\CameraCalibration\\CalImLeft10.jpg')  # Base image
-img1 = cv2.imread('utilityPrograms\\CameraCalibration\\CalImRight10.jpg')  # Image to overlay
+img2 = cv2.imread('utilityPrograms\\CameraCalibration\\CalImLeft0.jpg')  # Base image
+img1 = cv2.imread('utilityPrograms\\CameraCalibration\\CalImRight0.jpg')  # Image to overlay
 
 h, w = img1.shape[:2]
 

@@ -3,7 +3,7 @@ import numpy as np
 import glob
 
 # ==== PARAMETERS ====
-CHECKERBOARD = (6, 6)  # (columns, rows) of internal corners
+CHECKERBOARD = (7,7)  # (columns, rows) of internal corners
 SQUARE_SIZE = 25       # mm or any consistent unit
 IMAGE_DIR = './utilityPrograms/CameraCalibration/'  # folder containing left*.jpg and right*.jpg
 LEFT_PREFIX = 'Left'
@@ -38,18 +38,26 @@ while get_frame_placeholder(image_iterator) is not None:
     image_iterator += 1
     gray_left = cv2.cvtColor(left, cv2.COLOR_BGR2GRAY)
     gray_right = cv2.cvtColor(right, cv2.COLOR_BGR2GRAY)
-
-    ret_left, corners_left = cv2.findChessboardCorners(gray_left, CHECKERBOARD, None)
-    ret_right, corners_right = cv2.findChessboardCorners(gray_right, CHECKERBOARD, None)
+    flags = (
+    cv2.CALIB_CB_NORMALIZE_IMAGE |
+    cv2.CALIB_CB_EXHAUSTIVE |
+    cv2.CALIB_CB_ACCURACY
+    )
+    ret_left, corners_left = cv2.findChessboardCornersSB(gray_left, CHECKERBOARD, flags=flags)
+    ret_right, corners_right = cv2.findChessboardCornersSB(gray_right, CHECKERBOARD, flags=flags)
 
     if ret_left and ret_right:
+        #objpoints.append(objp)
+        #imgpoints_left.append(cv2.cornerSubPix(gray_left, corners_left, (11,11), (-1,-1),
+        #                                       criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)))
+        #imgpoints_right.append(cv2.cornerSubPix(gray_right, corners_right, (11,11), (-1,-1),
+        #                                        criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)))
         objpoints.append(objp)
-        imgpoints_left.append(cv2.cornerSubPix(gray_left, corners_left, (11,11), (-1,-1),
-                                               criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)))
-        imgpoints_right.append(cv2.cornerSubPix(gray_right, corners_right, (11,11), (-1,-1),
-                                                criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)))
+        imgpoints_left.append(corners_left)
+        imgpoints_right.append(corners_right)
+        print(f"Checkerboard found in pair: {image_iterator-1}")
     else:
-        print(f"Checkerboard not found in pair: {image_iterator}")
+        print(f"Checkerboard not found in pair: {image_iterator-1}")
 
 
 # ==== CALIBRATE EACH CAMERA ====

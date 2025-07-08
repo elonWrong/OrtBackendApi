@@ -28,7 +28,7 @@ y = max(ROI1[1], ROI2[1])
 w = min(ROI1[0] + ROI1[2], ROI2[0] + ROI2[2]) - x
 h = min(ROI1[1] + ROI1[3], ROI2[1] + ROI2[3]) - y
 
-w, h = 1280, 720  # Assuming a fixed resolution for the cameras
+w, h = 640, 480  # Assuming a fixed resolution for the cameras
 
 map1L, map2L = cv.initUndistortRectifyMap(K1, dist1, R1, P1, (w, h), cv.CV_16SC2)
 map1R, map2R = cv.initUndistortRectifyMap(K2, dist2, R2, P2, (w, h), cv.CV_16SC2)
@@ -41,16 +41,18 @@ unique_ratio = 10
 speckle_window_size = 100
 speckle_range = 16
 
+
 stereo = cv.StereoSGBM_create(
     numDisparities=num_disparities,
     blockSize=block_size,
     minDisparity=0,
-    P1=8 * 3 * block_size ** 2,
-    P2=32 * 3 * block_size ** 2,
-    disp12MaxDiff=1,
-    uniquenessRatio=unique_ratio,
-    speckleWindowSize=speckle_window_size,
-    speckleRange=speckle_range,
+    #P1=8 * 3 * block_size ** 2,
+    #P2=32 * 3 * block_size ** 2,
+    #disp12MaxDiff=1,
+    #uniquenessRatio=unique_ratio,
+    #speckleWindowSize=speckle_window_size,
+    #speckleRange=speckle_range,
+    mode=cv.STEREO_SGBM_MODE_SGBM  
 )
 
 fig, ax = plt.subplots(1, 3, figsize=(15, 5))
@@ -64,14 +66,26 @@ ax[0].axis('off')
 ax[1].axis('off')
 ax[2].axis('off')
 
-dur_slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
-dur_slider = Slider(dur_slider_ax, 'Frame Duration', 0.01, 10.0, valinit=frame_duration, valstep=0.01)
+#dur_slider_ax = plt.axes([0.1, 0.01, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+#dur_slider = Slider(dur_slider_ax, 'Frame Duration', 0.01, 10.0, valinit=frame_duration, valstep=0.01)
 
 num_disparities_ax = plt.axes([0.1, 0.05, 0.8, 0.03], facecolor='lightgoldenrodyellow')
 num_disparities_slider = Slider(num_disparities_ax, 'Num Disparities', 16, 128, valinit=num_disparities, valstep=16)
 
 block_size_ax = plt.axes([0.1, 0.09, 0.8, 0.03], facecolor='lightgoldenrodyellow')
 block_size_slider = Slider(block_size_ax, 'Block Size', 3, 21, valinit=block_size, valstep=2)
+
+max_diff_ax = plt.axes([0.1, 0.13, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+max_diff_slider = Slider(max_diff_ax, 'Max Diff', 0, 10, valinit=stereo.getDisp12MaxDiff(), valstep=1)
+
+unique_ratio_ax = plt.axes([0.1, 0.17, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+unique_ratio_slider = Slider(unique_ratio_ax, 'Uniqueness Ratio', 0, 50, valinit=unique_ratio, valstep=1)
+
+speckle_window_size_ax = plt.axes([0.1, 0.21, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+speckle_window_size_slider = Slider(speckle_window_size_ax, 'Speckle Window Size', 0, 200, valinit=speckle_window_size, valstep=1)
+
+speckle_range_ax = plt.axes([0.1, 0.25, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+speckle_range_slider = Slider(speckle_range_ax, 'Speckle Range', 0, 50, valinit=speckle_range, valstep=1)
 
 left_frame, right_frame = None, None
 
@@ -88,9 +102,9 @@ def recalculate_disparity_map():
         disparity_map = get_disparity_map(left_frame, right_frame)
         update_plot(left_frame, right_frame, disparity_map)
 
-def update_frame_duration(val):
-    global frame_duration
-    frame_duration = val
+#def update_frame_duration(val):
+#    global frame_duration
+#    frame_duration = val
 
 def update_num_disparities(val):
     global num_disparities, stereo
@@ -104,17 +118,47 @@ def update_block_size(val):
     if block_size % 2 == 0:  # Ensure block size is odd
         block_size += 1
     stereo.setBlockSize(block_size)
+    stereo.setP1(8 * 3 * block_size ** 2)
+    stereo.setP2(32 * 3 * block_size ** 2)
     recalculate_disparity_map()
-    
-dur_slider.on_changed(update_frame_duration)
+
+def update_max_diff(val):
+    global stereo
+    stereo.setDisp12MaxDiff(int(val))
+    recalculate_disparity_map()
+
+def update_unique_ratio(val):
+    global unique_ratio, stereo
+    unique_ratio = int(val)
+    stereo.setUniquenessRatio(unique_ratio)
+    recalculate_disparity_map()
+
+def update_speckle_window_size(val):
+    global speckle_window_size, stereo
+    speckle_window_size = int(val)
+    stereo.setSpeckleWindowSize(speckle_window_size)
+    recalculate_disparity_map()
+
+def update_speckle_range(val):
+    global speckle_range, stereo
+    speckle_range = int(val)
+    stereo.setSpeckleRange(speckle_range)
+    recalculate_disparity_map()
+
+#dur_slider.on_changed(update_frame_duration)
 num_disparities_slider.on_changed(update_num_disparities)
 block_size_slider.on_changed(update_block_size)
+max_diff_slider.on_changed(update_max_diff)
+unique_ratio_slider.on_changed(update_unique_ratio)
+speckle_window_size_slider.on_changed(update_speckle_window_size)
+speckle_range_slider.on_changed(update_speckle_range)
+
 
 def rectify_images(left_frame, right_frame):
-    rectifiedL = cv.remap(left_frame, map1L, map2L, cv.INTER_CUBIC)
-    rectifiedR = cv.remap(right_frame, map1R, map2R, cv.INTER_CUBIC)
-    rectifiedL = rectifiedL[y:y+h, x:x+w]  # Crop to ROI
-    rectifiedR = rectifiedR[y:y+h, x:x+w]  # Crop
+    rectifiedL = cv.remap(left_frame, map1L, map2L, cv.INTER_LINEAR)
+    rectifiedR = cv.remap(right_frame, map1R, map2R, cv.INTER_LINEAR)
+   #rectifiedL = rectifiedL[y:y+h, x:x+w]  # Crop to ROI
+   #rectifiedR = rectifiedR[y:y+h, x:x+w]  # Crop
     # Resize rectified images to match the original size
     return rectifiedL, rectifiedR
 
@@ -138,10 +182,12 @@ def get_frames():
 
 def get_frame_placeholder(index = 0):
     global left_frame, right_frame
-    #path = "TestCode\\testImages\\"
-    path = "utilityPrograms\\CameraCalibration\\CalIm"
-    left = cv.imread(f"{path}Left{index}.jpg")
-    right = cv.imread(f"{path}Right{index}.jpg")
+    path = "TestCode\\testImages\\"
+    left = cv.imread(f"{path}cam1Image{index}.jpg")
+    right = cv.imread(f"{path}cam2Image{index}.jpg")
+    #path = "utilityPrograms\\CameraCalibration\\CalIm"
+    #left = cv.imread(f"{path}Left{index}.jpg")
+    #right = cv.imread(f"{path}Right{index}.jpg")
     if left is None or right is None:
         raise FileNotFoundError(f"Images for index {index} not found.")
     left, right = rectify_images(left, right)
@@ -151,20 +197,20 @@ def update_plot(left_frame, right_frame, disparity_map):
 
     left_epipolar = draw_epipolar_lines(left_frame.copy())
     right_epipolar = draw_epipolar_lines(right_frame.copy())
-    ax[0].imshow(left_epipolar)
-    ax[1].imshow(right_epipolar)
-    ax[2].imshow(disparity_map, cmap='cool')
+    left_render.set_data(left_epipolar)
+    right_render.set_data(right_epipolar)
+    disparity_render.set_data(disparity_map)
     plt.draw()
 
 def get_disparity_map(left_frame, right_frame):
     # Convert images to grayscale
     left_gray = cv.cvtColor(left_frame, cv.COLOR_BGR2GRAY)
     right_gray = cv.cvtColor(right_frame, cv.COLOR_BGR2GRAY)
-    left_gray = cv.equalizeHist(left_gray)  # Optional: Enhance contrast
-    right_gray = cv.equalizeHist(right_gray)  # Optional: Enhance contrast
+    #left_gray = cv.equalizeHist(left_gray)  # Optional: Enhance contrast
+    #right_gray = cv.equalizeHist(right_gray)  # Optional: Enhance contrast
     # Compute disparity map
     disparity_map = stereo.compute(left_gray, right_gray).astype(np.float32) / num_disparities 
-    #disparity_map = cv.normalize(disparity_map, disparity_map, alpha=0, beta=255, norm_type=cv.NORM_MINMAX)
+    disparity_map = cv.normalize(disparity_map, disparity_map, alpha=0, beta=255, norm_type=cv.NORM_MINMAX) 
     disparity_map = interpolate_disparity_map(disparity_map)
     return disparity_map
 
@@ -173,7 +219,7 @@ def interpolate_disparity_map(disparity_map):
     # Interpolate the disparity map to fill in missing values
     mask = disparity_map <= 0
     mask = mask.astype(np.uint8)  # Convert mask to uint8 for inpainting
-    inpainted = cv.inpaint(disparity_map, mask, inpaintRadius=3, flags=cv.INPAINT_NS)
+    inpainted = cv.inpaint(disparity_map, mask, inpaintRadius=3, flags=cv.INPAINT_TELEA)
     return inpainted
 
 def draw_epipolar_lines(img, num_lines=20, color=(0, 255, 0)):
@@ -204,11 +250,10 @@ def main():
         left_epipolar = draw_epipolar_lines(left_frame.copy())
         right_epipolar = draw_epipolar_lines(right_frame.copy())
 
-        ax[0].imshow(left_epipolar)
-        ax[1].imshow(right_epipolar)
-        ax[2].imshow(disparity_map, cmap='cool')
+        left_render.set_data(left_epipolar)
+        right_render.set_data(right_epipolar)
+        disparity_render.set_data(disparity_map)
 
-        
         plt.draw()
         key_pressed['pressed'] = False
         
@@ -222,6 +267,12 @@ def main():
 
         index += 1
 fig.canvas.mpl_connect('key_press_event', on_key)
+
+get_frame_placeholder(0)  # Initialize with the first frame
+left_render = ax[0].imshow(np.zeros((720, 1280, 3), dtype=np.float32))
+right_render = ax[1].imshow(np.zeros((720, 1280, 3), dtype=np.float32))
+disparity_render = ax[2].imshow(np.zeros((720, 1280), dtype=np.float32), cmap='plasma', vmin=0, vmax=255)
+
 plt.show(block=False)
 if __name__ == "__main__":
     main()
