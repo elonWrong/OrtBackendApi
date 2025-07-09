@@ -4,7 +4,7 @@ import cv2 as cv
 imageiterator = 0
 
 
-grid = (6,6)
+grid = (7,6)
 
 cam = Camera(0)
 rightCam = Camera(1)
@@ -19,18 +19,23 @@ while (running):
 		break
 	cornersFound = False
 	frame = None
+	rightFrame = None
 	while not cornersFound:
 		frame = cam.get_frame()
 		rightFrame = rightCam.get_frame()
-		gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-		rightGray = cv.cvtColor(rightFrame, cv.COLOR_BGR2GRAY)
+		frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+		rightFrame = cv.cvtColor(rightFrame, cv.COLOR_BGR2RGB)
+		## frame = frame[:, :, [2,1,0]]
+		## rightFrame = rightFrame[:, :, [2,1,0]]
+		gray = cv.cvtColor(frame, cv.COLOR_RGB2GRAY)
+		rightGray = cv.cvtColor(rightFrame, cv.COLOR_RGB2GRAY)
 		print("what")
 		cornersFound, corners = cv.findChessboardCorners(gray, grid, None)	
 
 		if cornersFound:
-			visualise = frame.copy()
-			cv.drawChessboardCorners(visualise, grid, corners, cornersFound)
-			cv.waitKey(3000)
+			## visualise = frame.copy()
+			## cv.drawChessboardCorners(visualise, grid, corners, cornersFound)
+			## cv.waitKey(3000)
 			print("howdy")		
 			cornersFoundRight, cornersRight = cv.findChessboardCorners(rightGray, grid, None)
 			if cornersFoundRight:
