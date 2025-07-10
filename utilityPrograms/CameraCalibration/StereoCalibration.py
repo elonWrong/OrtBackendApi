@@ -3,7 +3,7 @@ import numpy as np
 import glob
 
 # ==== PARAMETERS ====
-CHECKERBOARD = (7,7)  # (columns, rows) of internal corners
+CHECKERBOARD = (7,6)  # (columns, rows) of internal corners
 SQUARE_SIZE = 25       # mm or any consistent unit
 IMAGE_DIR = './utilityPrograms/CameraCalibration/'  # folder containing left*.jpg and right*.jpg
 LEFT_PREFIX = 'Left'
@@ -75,7 +75,7 @@ ret, _, _, _, _, R, T, E, F = cv2.stereoCalibrate(
 )
 
 # ==== RECTIFICATION ====
-R1, R2, P1, P2, Q, ROI1, ROI2 = cv2.stereoRectify(K1, dist1, K2, dist2, img_size, R, T)
+R1, R2, P1, P2, Q, ROI1, ROI2 = cv2.stereoRectify(K1, dist1, K2, dist2, img_size, R, T, alpha=0)
 
 # ==== SAVE PARAMETERS ====
 np.savez('stereo_params.npz',

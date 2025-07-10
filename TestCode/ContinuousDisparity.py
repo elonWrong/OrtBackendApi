@@ -28,12 +28,12 @@ y = max(ROI1[1], ROI2[1])
 w = min(ROI1[0] + ROI1[2], ROI2[0] + ROI2[2]) - x
 h = min(ROI1[1] + ROI1[3], ROI2[1] + ROI2[3]) - y
 
-w, h = 640, 480  # Assuming a fixed resolution for the cameras
+w, h = 1280, 720  # Assuming a fixed resolution for the cameras
 
 map1L, map2L = cv.initUndistortRectifyMap(K1, dist1, R1, P1, (w, h), cv.CV_16SC2)
 map1R, map2R = cv.initUndistortRectifyMap(K2, dist2, R2, P2, (w, h), cv.CV_16SC2)
 
-
+scale = 1.0  # Default scale for resizing images
 
 num_disparities = 16 * 2  # Must be divisible by 16
 block_size = 7  # Must be odd
@@ -87,6 +87,9 @@ speckle_window_size_slider = Slider(speckle_window_size_ax, 'Speckle Window Size
 speckle_range_ax = plt.axes([0.1, 0.25, 0.8, 0.03], facecolor='lightgoldenrodyellow')
 speckle_range_slider = Slider(speckle_range_ax, 'Speckle Range', 0, 50, valinit=speckle_range, valstep=1)
 
+scale_ax = plt.axes([0.1, 0.29, 0.8, 0.03], facecolor='lightgoldenrodyellow')
+scale_slider = Slider(scale_ax, 'Scale', 0.1, 2.0, valinit=1.0, valstep=0.1)
+
 left_frame, right_frame = None, None
 
 key_pressed = {'pressed': False}
@@ -105,6 +108,14 @@ def recalculate_disparity_map():
 #def update_frame_duration(val):
 #    global frame_duration
 #    frame_duration = val
+
+def update_scale(val):
+    global left_frame, right_frame, stereo
+    scale = float(val)
+    if left_frame is not None and right_frame is not None:
+        left_frame = cv.resize(left_frame, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
+        right_frame = cv.resize(right_frame, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
+        recalculate_disparity_map()
 
 def update_num_disparities(val):
     global num_disparities, stereo
@@ -145,6 +156,7 @@ def update_speckle_range(val):
     stereo.setSpeckleRange(speckle_range)
     recalculate_disparity_map()
 
+
 #dur_slider.on_changed(update_frame_duration)
 num_disparities_slider.on_changed(update_num_disparities)
 block_size_slider.on_changed(update_block_size)
@@ -152,11 +164,13 @@ max_diff_slider.on_changed(update_max_diff)
 unique_ratio_slider.on_changed(update_unique_ratio)
 speckle_window_size_slider.on_changed(update_speckle_window_size)
 speckle_range_slider.on_changed(update_speckle_range)
+scale_slider.on_changed(update_scale)
 
 
 def rectify_images(left_frame, right_frame):
     rectifiedL = cv.remap(left_frame, map1L, map2L, cv.INTER_LINEAR)
     rectifiedR = cv.remap(right_frame, map1R, map2R, cv.INTER_LINEAR)
+
    #rectifiedL = rectifiedL[y:y+h, x:x+w]  # Crop to ROI
    #rectifiedR = rectifiedR[y:y+h, x:x+w]  # Crop
     # Resize rectified images to match the original size
@@ -181,16 +195,23 @@ def get_frames():
     return rectifiedL, rectifiedR
 
 def get_frame_placeholder(index = 0):
-    global left_frame, right_frame
-    path = "TestCode\\testImages\\"
-    left = cv.imread(f"{path}cam1Image{index}.jpg")
-    right = cv.imread(f"{path}cam2Image{index}.jpg")
-    #path = "utilityPrograms\\CameraCalibration\\CalIm"
-    #left = cv.imread(f"{path}Left{index}.jpg")
-    #right = cv.imread(f"{path}Right{index}.jpg")
+    global left_frame, right_frame, scale
+    #path = "TestCode\\testImages\\"
+    #left = cv.imread(f"{path}cam1Image{index}.jpg")
+    #right = cv.imread(f"{path}cam2Image{index}.jpg")
+    path = "utilityPrograms\\CameraCalibration\\CalIm"
+    left = cv.imread(f"{path}Left{index}.jpg")
+    right = cv.imread(f"{path}Right{index}.jpg")
+    left = cv.cvtColor(left, cv.COLOR_BGR2RGB)
+    right = cv.cvtColor(right, cv.COLOR_BGR2RGB)
+    # scale the images 
+
     if left is None or right is None:
         raise FileNotFoundError(f"Images for index {index} not found.")
-    left, right = rectify_images(left, right)
+    left, right = rectify_images(left, right)    
+    if scale != 1.0:
+        left = cv.resize(left, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
+        right = cv.resize(right, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
     return left, right
 
 def update_plot(left_frame, right_frame, disparity_map):
@@ -268,10 +289,13 @@ def main():
         index += 1
 fig.canvas.mpl_connect('key_press_event', on_key)
 
-get_frame_placeholder(0)  # Initialize with the first frame
-left_render = ax[0].imshow(np.zeros((720, 1280, 3), dtype=np.float32))
-right_render = ax[1].imshow(np.zeros((720, 1280, 3), dtype=np.float32))
-disparity_render = ax[2].imshow(np.zeros((720, 1280), dtype=np.float32), cmap='plasma', vmin=0, vmax=255)
+if live:
+    left_frame, right_frame = get_frames()  # Initialize with the first frames
+else:
+    left_frame, right_frame = get_frame_placeholder(0)  # Initialize with the first frame
+left_render = ax[0].imshow(np.zeros((left_frame.shape[0], left_frame.shape[1], 3), dtype=np.float32))
+right_render = ax[1].imshow(np.zeros((right_frame.shape[0], right_frame.shape[1], 3), dtype=np.float32))
+disparity_render = ax[2].imshow(np.zeros((left_frame.shape[0], left_frame.shape[1]), dtype=np.float32), cmap='plasma', vmin=0, vmax=255)
 
 plt.show(block=False)
 if __name__ == "__main__":
