@@ -42,7 +42,7 @@ class IMU:
 			"z": 0
 		}
 
-	def generateStream(self):
+	async def generateStream(self):
 		while True:
 			timeStamp = time.time()
 			orientation = self.getOrientation()
@@ -56,16 +56,21 @@ class IMU:
 					"speed": self.speed,
 					"displacement": self.displacement,
 					"timeStamp": timeStamp,
-					"timeElapsed": timeStamp - self.previousReading["timeStamp"] if self.previousReading else 0,
-					"previousOrientation": self.previousReading["orientation"] if self.previousReading else None,
-					"previousAcceleration": self.previousReading["acceleration"] if self.previousReading else None
+					"previousReading": {
+						"timeElapsed": self.previousReading["timeStamp"] if self.previousReading else None,
+						"previousOrientation": self.previousReading["orientation"] if self.previousReading else None,
+						"previousAcceleration": self.previousReading["acceleration"] if self.previousReading else None,
+						"previousSpeed": self.previousReading["speed"] if self.previousReading else None,
+						"previousDisplacement": self.previousReading["displacement"] if self.previousReading else None
+					}
 				}
 				self.previousReading = timeStamp
-				yield json.dumps(data) + "\n"
-			elif orientation is None:
-				yield json.dumps({"error": "Failed to read orientation"}) + "\n"
-			elif acceleration is None:
-				yield json.dumps({"error": "Failed to read acceleration"}) + "\n"
+				print("IMU Data:", data, end="\r")
+			#	yield json.dumps(data) + "\n"
+			#elif orientation is None:
+			#	yield json.dumps({"error": "Failed to read orientation"}) + "\n"
+			#elif acceleration is None:
+			#	yield json.dumps({"error": "Failed to read acceleration"}) + "\n"
 			time.sleep(self.SAMPLE_RATE)
 
 	def i2cRead(self, registerAddress, numBytes=1):
@@ -79,7 +84,7 @@ class IMU:
 			print("I2C read error:", e)
 			return None
 
-        # Calculate bearing
+        # Calculate bearing 
 		bearing = ((receivedBytes[0] << 8) + receivedBytes[1]) / 10.		
 		pitch = receivedBytes[2]
 		if pitch > 127:
