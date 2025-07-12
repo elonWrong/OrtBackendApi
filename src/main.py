@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+from starlette.responses import StreamingResponse as StarletteStreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from controller import Controller
@@ -60,7 +61,7 @@ def video_feed(camera_id: int):
 
 @app.get("/imu")
 def get_imu_data():
-    return StreamingResponse(controller.generateStream(), media_type="application/json")
+    return StarletteStreamingResponse(controller.generateStream(), media_type="application/x-ndjson")
 
 ## add endpoints for the controls
 # Motor specific controls
