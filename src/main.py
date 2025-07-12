@@ -61,7 +61,7 @@ def video_feed(camera_id: int):
 
 @app.get("/imu")
 def get_imu_data():
-    return StarletteStreamingResponse(controller.generateStream(), media_type="application/x-ndjson")
+    return StreamingResponse(controller.imuGenerateStream(), media_type="application/x-ndjson")
 
 ## add endpoints for the controls
 # Motor specific controls

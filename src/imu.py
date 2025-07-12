@@ -42,7 +42,7 @@ class IMU:
 			"z": 0
 		}
 
-	async def generateStream(self):
+	def generateStream(self):
 		while True:
 			timeStamp = time.time()
 			orientation = self.getOrientation()
@@ -53,24 +53,15 @@ class IMU:
 				data = {
 					"orientation": orientation,
 					"acceleration": acceleration,
-					"speed": self.speed,
-					"displacement": self.displacement,
-					"timeStamp": timeStamp,
-					"previousReading": {
-						"timeElapsed": self.previousReading["timeStamp"] if self.previousReading else None,
-						"previousOrientation": self.previousReading["orientation"] if self.previousReading else None,
-						"previousAcceleration": self.previousReading["acceleration"] if self.previousReading else None,
-						"previousSpeed": self.previousReading["speed"] if self.previousReading else None,
-						"previousDisplacement": self.previousReading["displacement"] if self.previousReading else None
-					}
+					"timeStamp": timeStamp
 				}
-				self.previousReading = timeStamp
-				print("IMU Data:", data, end="\r")
-			#	yield json.dumps(data) + "\n"
-			#elif orientation is None:
-			#	yield json.dumps({"error": "Failed to read orientation"}) + "\n"
-			#elif acceleration is None:
-			#	yield json.dumps({"error": "Failed to read acceleration"}) + "\n"
+				self.previousReading = data
+				# print(f"IMU data: {data}".ljust(120), end="\r")
+				yield json.dumps(data) + "\n"
+			elif orientation is None:
+				yield json.dumps({"error": "Failed to read orientation"}) + "\n"
+			elif acceleration is None:
+				yield json.dumps({"error": "Failed to read acceleration"}) + "\n"
 			time.sleep(self.SAMPLE_RATE)
 
 	def i2cRead(self, registerAddress, numBytes=1):
@@ -131,10 +122,10 @@ class IMU:
 			self.speed["z"] += acc["z"] * self.SAMPLE_RATE
 
 	def updateDisplacement(self, timeElapsed):
-		print("moved by", self.speed, "in", timeElapsed, "seconds")
-		print("displacement before", self.displacement)
+		# print("moved by", self.speed, "in", timeElapsed, "seconds")
+		# print("displacement before", self.displacement)
 		self.displacement["x"] += self.speed["x"] * timeElapsed
 		self.displacement["y"] += self.speed["y"] * timeElapsed
 		self.displacement["z"] += self.speed["z"] * timeElapsed
-		print("displacement after", self.displacement)
+		# print("displacement after", self.displacement)
 

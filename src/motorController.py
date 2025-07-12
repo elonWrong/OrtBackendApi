@@ -4,11 +4,17 @@ import time
 class MotorController:
     def __init__(self):
 		## numbers are pin numbers as corresponding to the pinmap ()
-        self.motorLF = Motor(22,23) # Front Left Motor
-        self.motorRF = Motor(17,27) # Front Right Motor
+        # self.motorLF = Motor(23,22) # Front Left Motor
+        # self.motorRF = Motor(17,27) # Front Right Motor
 
-        self.motorLR = Motor(5,6) # Rear Left motor
-        self.motorRR = Motor(9,11) # Rear right motor
+        # self.motorLR = Motor(8,25) # Rear Left motor
+        # self.motorRR = Motor(11,9) # Rear right motor
+
+        self.motorRF = Motor(8, 25)
+        self.motorLF = Motor(17,27)
+
+        self.motorLR = Motor(23, 22)
+        self.motorRR = Motor(11, 9)
     
     def lf_activate(self, inNo: float):
         print("LF")

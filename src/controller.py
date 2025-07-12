@@ -106,6 +106,9 @@ class Controller:
 		
 		self.currentOrientation = self.imu.getOrientation()
 		print(f"Final Bearing: {self.currentOrientation['bearing']}")
+
+	def imuGenerateStream(self):
+		return self.imu.generateStream()
 		
 		
 	
