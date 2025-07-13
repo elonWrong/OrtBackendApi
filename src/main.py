@@ -10,9 +10,21 @@ import cv2
 
 app = FastAPI()
 controller = Controller()
-leftCam = Camera(0)
-rightCam = Camera(1)
-cams = [leftCam, rightCam]
+cams = []
+leftCam = None
+rightCam = None
+
+try: 
+    leftCam = Camera(0)
+    cams.append(leftCam)
+except Exception as e:
+    print(f"Camera initialization failed: {e}")
+
+try:
+    rightCam = Camera(1)
+    cams.append(rightCam)
+except Exception as e:
+    print(f"Camera initialization failed: {e}")
 
 app.add_middleware(
     CORSMiddleware,
