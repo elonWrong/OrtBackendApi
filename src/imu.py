@@ -9,15 +9,19 @@ class IMU:
 	BEARING_REGISTER = 2 
 	PITCH_REGISTER = 4
 	ROLL_REGISTER = 5
-	ACCEL_X_REGISTER = 6
-	ACCEL_Y_REGISTER = 7
-	ACCEL_Z_REGISTER = 8
-	
-	SAMPLE_RATE = 0.01  # 10 ms sample rate
+	ACCEL_X_REGISTER = 0x0C
+	ACCEL_Y_REGISTER = 0x0E
+	ACCEL_Z_REGISTER = 0x10
+	GYRO_X_REGISTER = 0x12
+	GYRO_Y_REGISTER = 0x14
+	GYRO_Z_REGISTER = 0x16
+
+	SAMPLE_RATE = 0.1  # 100 ms sample rate
 
 	def __init__(self):
 		self.bus = smbus2.SMBus(1)
 		self.previousReading = None
+		self.session_readings = []
 		self.speed = {
 			"x": 0, 
 			"y": 0,
@@ -64,6 +68,17 @@ class IMU:
 				yield json.dumps({"error": "Failed to read acceleration"}) + "\n"
 			time.sleep(self.SAMPLE_RATE)
 
+	def get_frame(self):
+		frame = {
+			"orientation": self.getOrientation(),
+			"acceleration": self.getAcc(),
+			"gyro": self.getGyro(),
+			"timeStamp": time.time()
+		}
+		self.session_readings.append(frame)
+		return frame
+		
+
 	def i2cRead(self, registerAddress, numBytes=1):
 		return self.bus.read_i2c_block_data(self.I2C_ADDRESS, registerAddress, numBytes)
 		
@@ -91,23 +106,37 @@ class IMU:
 		}
 
 		return orientation
+	def getGyro(self):
+		try:
+			# Read 6 bytes: Gyro X (2), Y (2), Z (2)
+			gyro_x = self.i2cRead(self.GYRO_X_REGISTER, 2)
+			gyro_y = self.i2cRead(self.GYRO_Y_REGISTER, 2)	
+			gyro_z = self.i2cRead(self.GYRO_Z_REGISTER, 2)
+
+			gyro = {
+				"x": gyro_x / 1000.0,  # Convert to degrees/s
+				"y": gyro_y / 1000.0,
+				"z": gyro_z / 1000.0
+			}
+
+			return gyro
+		except Exception as e:
+			print("I2C read error (gyroscope):", e)
+			return None
 		
 	def getAcc(self):
 		try:
 			# Read 6 bytes: Accel X (2), Y (2), Z (2)
-			acc_bytes = self.i2cRead(self.ACCEL_X_REGISTER, 6)
-			# Combine high and low bytes into signed 16-bit integers
-			def to_signed16(high, low):
-				value = (high << 8) | low
-				return value - 65536 if value >= 32768 else value
-			acc_x = to_signed16(acc_bytes[0], acc_bytes[1])
-			acc_y = to_signed16(acc_bytes[2], acc_bytes[3])
-			acc_z = to_signed16(acc_bytes[4], acc_bytes[5])
+
+			acc_x = self.i2cRead(self.ACCEL_X_REGISTER, 2)
+			acc_y = self.i2cRead(self.ACCEL_Y_REGISTER, 2)	
+			acc_z = self.i2cRead(self.ACCEL_Z_REGISTER, 2)
+
 
 			acc = {
-				"x": acc_x,  # Convert to g
-				"y": acc_y,
-				"z": acc_z
+				"x": acc_x / 1000.0,  # Convert to g's
+				"y": acc_y / 1000.0,
+				"z": acc_z / 1000.0
 			}
 
 			return acc
