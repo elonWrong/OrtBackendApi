@@ -22,6 +22,9 @@ env/
 .installed.cfg
 *.egg
 
+# ignore the data directory
+data/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt

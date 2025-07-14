@@ -12,8 +12,8 @@ class IMU:
 	ACCEL_X_REGISTER = 6
 	ACCEL_Y_REGISTER = 7
 	ACCEL_Z_REGISTER = 8
-	
-	SAMPLE_RATE = 0.01  # 10 ms sample rate
+
+	SAMPLE_RATE = 0.1  # 100 ms sample rate
 
 	def __init__(self):
 		self.bus = smbus2.SMBus(1)
@@ -105,9 +105,9 @@ class IMU:
 			acc_z = to_signed16(acc_bytes[4], acc_bytes[5])
 
 			acc = {
-				"x": acc_x,  # Convert to g
-				"y": acc_y,
-				"z": acc_z
+				"x": acc_x / 1000.0,  # Convert to g's
+				"y": acc_y / 1000.0,
+				"z": acc_z / 1000.0
 			}
 
 			return acc
