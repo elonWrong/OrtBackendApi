@@ -31,7 +31,7 @@ class SessionManager:
     def package_session(self, session_id):
         session = next((s for s in self.sessions if s['session_id'] == session_id), None)
         if not session:
-            raise ValueError(f"Session with ID {session_id} not found.")
+            return {"error": "Session not found"}
 
         right_dir = os.path.join(self.RIGHT_PATH, str(session_id))
         left_dir = os.path.join(self.LEFT_PATH, str(session_id))
@@ -51,6 +51,14 @@ class SessionManager:
 
         shutil.copy(imu_session_file, session_package_dir)
         shutil.copy(range_finder_session_file, session_package_dir)
+
+        return {
+            'session_id': session_id,
+            'right_images': right_images_packaged_file,
+            'left_images': left_images_packaged_file,
+            'imu_data': imu_session_file,
+            'range_finder_data': range_finder_session_file
+        }
     
     def read_all_images_to_np(dir_path):
         images = []

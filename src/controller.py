@@ -1,4 +1,4 @@
-from motorController import MotorController
+from motor_controller import MotorController
 from imu import IMU
 import time
 
