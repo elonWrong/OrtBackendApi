@@ -1,6 +1,6 @@
 from gpiozero import PhaseEnableMotor
 import time
-from motorController import MotorController
+from motor_controller import MotorController
 
 # Motor Test suite
 

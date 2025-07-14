@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from controller import Controller
 from camera import Camera
+from data_collection import SensorFuser
+from session_manager import SessionManager
+from typing import Optional
 import cv2
 
 
@@ -12,6 +15,9 @@ app = FastAPI()
 controller = Controller()
 leftCam = Camera(0)
 rightCam = Camera(1)
+sensor_fuser = SensorFuser()
+session_manager = sensor_fuser.session_manager
+sensor_fuser.run()
 cams = [leftCam, rightCam]
 
 app.add_middleware(
@@ -62,6 +68,15 @@ def video_feed(camera_id: int):
 @app.get("/imu")
 def get_imu_data():
     return StreamingResponse(controller.imuGenerateStream(), media_type="application/x-ndjson")
+
+@app.get("/sessions/")
+def get_session_data(session_id: Optional[int] = None):
+    if session_id is not None:
+        session = session_manager.package_session(session_id)
+        if "error" in session:
+            return session
+        return session
+    return {"error": "Session not found"}
 
 ## add endpoints for the controls
 # Motor specific controls

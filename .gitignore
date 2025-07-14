@@ -23,7 +23,7 @@ env/
 *.egg
 
 # ignore the data directory
-data/
+data/ims/
 
 # Installer logs
 pip-log.txt
