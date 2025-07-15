@@ -1,5 +1,5 @@
-import json
 import os
+import json
 import time
 import shutil
 import cv2 as cv
@@ -7,16 +7,21 @@ import numpy as np
 
 
 class SessionManager:
-    DIR_PATH = 'data\\Sensors\\'
-    RIGHT_PATH = DIR_PATH+'StereoRight'
-    LEFT_PATH = DIR_PATH+'StereoLeft'
-    IMU_PATH = DIR_PATH+'Imu'
-    RANGE_FINDER_PATH = DIR_PATH+'RangeFinder'
+    DIR_PATH = os.path.join('data', 'Sensors')
+    RIGHT_PATH = os.path.join(DIR_PATH, 'StereoRight')
+    LEFT_PATH = os.path.join(DIR_PATH, 'StereoLeft')
+    IMU_PATH = os.path.join(DIR_PATH, 'Imu')
+    RANGE_FINDER_PATH = os.path.join(DIR_PATH, 'RangeFinder')
 
     def __init__(self):
         self.sessions = []
-
-        with open(os.path.join(self.DIR_PATH, 'Sessions', 'session_data.jsonl'), "r") as f:
+        sessions_dir = os.path.join(self.DIR_PATH, 'Sessions')
+        os.makedirs(sessions_dir, exist_ok=True)
+        session_file = os.path.join(sessions_dir, 'session_data.jsonl')
+        if not os.path.exists(session_file):
+            with open(session_file, "w") as f:
+                pass  # create empty file
+        with open(session_file, "r") as f:
             self.sessions = [json.loads(line) for line in f]
 
         self.create_directories()
@@ -113,4 +118,3 @@ class SessionManager:
         with open(os.path.join(self.DIR_PATH, 'Sessions', 'session_data.jsonl'), "w") as f:
             for session in self.sessions:
                 f.write(json.dumps(session) + "\n")
-                

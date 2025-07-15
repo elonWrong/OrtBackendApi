@@ -60,7 +60,7 @@ class IMU:
 				yield json.dumps({"error": "Failed to read acceleration"}) + "\n"
 			time.sleep(self.SAMPLE_RATE)
 
-	def get_frame(self):
+	def get_data(self):
 		frame = {
 			"orientation": self.getOrientation(),
 			"acceleration": self.getAcc(),
@@ -70,6 +70,8 @@ class IMU:
 		self.session_readings.append(frame)
 		return frame
 		
+	def get_frame(self):
+		self.get_data()
 
 	def i2cRead(self, registerAddress, numBytes=1):
 		return self.bus.read_i2c_block_data(self.I2C_ADDRESS, registerAddress, numBytes)
@@ -101,9 +103,12 @@ class IMU:
 	def getGyro(self):
 		try:
 			# Read 6 bytes: Gyro X (2), Y (2), Z (2)
-			gyro_x = self.i2cRead(self.GYRO_X_REGISTER, 2)
-			gyro_y = self.i2cRead(self.GYRO_Y_REGISTER, 2)	
-			gyro_z = self.i2cRead(self.GYRO_Z_REGISTER, 2)
+			gyro_x_bytes = self.i2cRead(self.GYRO_X_REGISTER, 2)
+			gyro_y_bytes = self.i2cRead(self.GYRO_Y_REGISTER, 2)	
+			gyro_z_bytes = self.i2cRead(self.GYRO_Z_REGISTER, 2)
+			gyro_x = self.__to_signed16(gyro_x_bytes[0], gyro_x_bytes[1])
+			gyro_y = self.__to_signed16(gyro_y_bytes[0], gyro_y_bytes[1])
+			gyro_z = self.__to_signed16(gyro_z_bytes[0], gyro_z_bytes[1])
 
 			gyro = {
 				"x": gyro_x / 1000.0,  # Convert to degrees/s
@@ -119,14 +124,14 @@ class IMU:
 	def getAcc(self):
 		try:
 			# Read 6 bytes: Accel X (2), Y (2), Z (2)
-
-			acc_x = self.i2cRead(self.ACCEL_X_REGISTER, 2)
-			acc_y = self.i2cRead(self.ACCEL_Y_REGISTER, 2)	
-			acc_z = self.i2cRead(self.ACCEL_Z_REGISTER, 2)
-
-
+			acc_x_bytes = self.i2cRead(self.ACCEL_X_REGISTER, 2)
+			acc_y_bytes = self.i2cRead(self.ACCEL_Y_REGISTER, 2)	
+			acc_z_bytes = self.i2cRead(self.ACCEL_Z_REGISTER, 2)
+			acc_x = self.__to_signed16(acc_x_bytes[0], acc_x_bytes[1])
+			acc_y = self.__to_signed16(acc_y_bytes[0], acc_y_bytes[1])
+			acc_z = self.__to_signed16(acc_z_bytes[0], acc_z_bytes[1])
 			acc = {
-				"x": acc_x / 1000.0,  # Convert to g's
+				"x": acc_x / 1000.0,
 				"y": acc_y / 1000.0,
 				"z": acc_z / 1000.0
 			}
@@ -149,4 +154,8 @@ class IMU:
 		self.displacement["y"] += self.speed["y"] * timeElapsed
 		self.displacement["z"] += self.speed["z"] * timeElapsed
 		# print("displacement after", self.displacement)
+	
+	def __to_signed16(self, high, low):
+		value = (high << 8) | low
+		return value - 65536 if value >= 32768 else value
 

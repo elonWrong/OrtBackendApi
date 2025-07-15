@@ -24,6 +24,7 @@ env/
 
 # ignore the data directory
 data/ims/
+data/Sensors/*
 
 # Installer logs
 pip-log.txt
