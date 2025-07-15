@@ -39,19 +39,20 @@ class Controller:
 		self.currentOrientation = self.imu.getOrientation()
 		print(f"Current Orientation: {self.currentOrientation}")
 		bearing = self.currentOrientation["bearing"]
+		startingBearing = bearing
 		desiredBearing = (bearing + degrees) % 360
 		print(f"Current Bearing: {bearing}, Desired Bearing: {desiredBearing}")
 		while True:
 			self.currentOrientation = self.imu.getOrientation()
 			bearing = self.currentOrientation["bearing"]
 			print(f"Current Bearing: {bearing}")
-			if abs(bearing - desiredBearing) < 1:
+			if (bearing - startingBearing) % 360 >= (desiredBearing - startingBearing) % 360:
 				break
-			self.motors.lf_activate(0.5)
-			self.motors.rf_activate(-0.5)
-			self.motors.lr_activate(0.5)
-			self.motors.rr_activate(-0.5)
-			time.sleep(0.1)
+			self.motors.lf_activate(1)
+			self.motors.rf_activate(-1)
+			self.motors.lr_activate(1)
+			self.motors.rr_activate(-1)
+			time.sleep(0.01)
 		self.motors.all_off()
 		
 		self.currentOrientation = self.imu.getOrientation()
@@ -60,7 +61,8 @@ class Controller:
 	def turnCounterClockwise(self, degrees):
 		self.currentOrientation = self.imu.getOrientation()
 		bearing = self.currentOrientation["bearing"]
-		desiredBearing = (bearing - degrees)
+		startingBearing = bearing
+		desiredBearing = (bearing - degrees) % 360
 		if desiredBearing < 0:
 			desiredBearing += 360
 		print(f"Current Bearing: {bearing}, Desired Bearing: {desiredBearing}")
@@ -68,13 +70,15 @@ class Controller:
 			self.currentOrientation = self.imu.getOrientation()
 			bearing = self.currentOrientation["bearing"]
 			print(f"Current Bearing: {bearing}")
-			if abs(bearing - desiredBearing) < 1:
+			# if abs(bearing - desiredBearing) < 1:
+			# 	break
+			if (startingBearing - bearing) % 360 >= (startingBearing - desiredBearing) % 360:
 				break
-			self.motors.lf_activate(-0.5)
-			self.motors.rf_activate(0.5)
-			self.motors.lr_activate(-0.5)
-			self.motors.rr_activate(0.5)
-			time.sleep(0.1)
+			self.motors.lf_activate(-1)
+			self.motors.rf_activate(1)
+			self.motors.lr_activate(-1)
+			self.motors.rr_activate(1)
+			time.sleep(0.01)
 		self.motors.all_off()
 		
 		self.currentOrientation = self.imu.getOrientation()
@@ -92,15 +96,15 @@ class Controller:
 			if abs(bearing - desiredBearing) < 1:
 				break
 			if bearing < desiredBearing:
-				self.motors.lf_activate(0.5)
-				self.motors.rf_activate(-0.5)
-				self.motors.lr_activate(0.5)
-				self.motors.rr_activate(-0.5)
+				self.motors.lf_activate(1)
+				self.motors.rf_activate(-1)
+				self.motors.lr_activate(1)
+				self.motors.rr_activate(-1)
 			else:
-				self.motors.lf_activate(-0.5)
-				self.motors.rf_activate(0.5)
-				self.motors.lr_activate(-0.5)
-				self.motors.rr_activate(0.5)
+				self.motors.lf_activate(-1)
+				self.motors.rf_activate(1)
+				self.motors.lr_activate(-1)
+				self.motors.rr_activate(1)
 			time.sleep(0.1)
 		self.motors.all_off()
 		
