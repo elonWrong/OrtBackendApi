@@ -24,6 +24,8 @@ class SessionManager:
         with open(session_file, "r") as f:
             self.sessions = [json.loads(line) for line in f]
 
+        self.create_directories()
+
     def create_session(self, label="data collection"):
         session = {
             'session_id': self.sessions[-1]['session_id'] + 1 if self.sessions else 1,
@@ -33,6 +35,33 @@ class SessionManager:
         with open(os.path.join(self.DIR_PATH, 'Sessions', 'session_data.jsonl'), "a") as f:
             f.write(json.dumps(session) + "\n")
         return session
+    
+    def create_directories(self):
+        self.right_dir = os.path.join(self.RIGHT_PATH, str(self.session['session_id']))
+        self.left_dir = os.path.join(self.LEFT_PATH, str(self.session['session_id']))
+        self.imu_session_file = os.path.join(self.IMU_PATH, str(self.session['session_id']))
+        self.range_finder_session_file = os.path.join(self.RANGE_FINDER_PATH, str(self.session['session_id']))
+        self.instructions_session_file = os.path.join(self.INSTRUCTIONS_PATH, str(self.session['session_id']))
+
+        os.makedirs(self.right_dir, exist_ok=True)
+        os.makedirs(self.left_dir, exist_ok=True)
+
+    def store_data(self, data):
+        # Here you would implement the logic to store the data, e.g., in a database or file
+        right_image_path = f"{self.right_dir}/{data['timestamp']}_right.jpg"
+        left_image_path = f"{self.left_dir}/{data['timestamp']}_left.jpg"
+
+        cv.imwrite(right_image_path, data['right_camera'])
+        cv.imwrite(left_image_path, data['left_camera'])
+
+        data['imu']['global_timestamp'] = data['timestamp']
+        data['range_finder']['global_timestamp'] = data['timestamp']
+
+        with open(self.imu_session_file, 'a') as imu_file:
+            imu_file.write(json.dumps(data['imu']) + "\n")
+
+        with open(self.range_finder_session_file, 'a') as range_file:
+            range_file.write(json.dumps(data['range_finder']) + "\n")
     
     def package_session(self, session_id):
         session = next((s for s in self.sessions if s['session_id'] == session_id), None)
@@ -57,13 +86,15 @@ class SessionManager:
 
         shutil.copy(imu_session_file, session_package_dir)
         shutil.copy(range_finder_session_file, session_package_dir)
+        shutil.copy(self.instructions_session_file, session_package_dir)
 
         return {
             'session_id': session_id,
             'right_images': right_images_packaged_file,
             'left_images': left_images_packaged_file,
             'imu_data': imu_session_file,
-            'range_finder_data': range_finder_session_file
+            'range_finder_data': range_finder_session_file,
+            'instructions_data': self.instructions_session_file
         }
     
     def read_all_images_to_np(dir_path):
@@ -85,6 +116,7 @@ class SessionManager:
                 shutil.rmtree(os.path.join(self.LEFT_PATH, str(session['session_id'])), ignore_errors=True)
                 os.rmdir(os.path.join(self.IMU_PATH, str(session['session_id'])))
                 os.rmdir(os.path.join(self.RANGE_FINDER_PATH, str(session['session_id'])))
+                os.rmdir(os.path.join(self.INSTRUCTIONS_PATH, str(session['session_id'])))
         self.sessions = [session for session in self.sessions if session['session_id'] not in sessions_to_delete]
         with open(os.path.join(self.DIR_PATH, 'Sessions', 'session_data.jsonl'), "w") as f:
             for session in self.sessions:
