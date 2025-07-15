@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from controller import Controller
 from camera import Camera
-from src.data_fuser import SensorFuser
+from data_fuser import SensorFuser
 from session_manager import SessionManager
 from typing import Optional
 import cv2
@@ -132,6 +132,7 @@ def create_zip_file(session: dict):
         zip_file.write(session['left_images'], arcname=f"{session_id}_left_images.npy")
         zip_file.write(session['imu_data'], arcname=f"{session_id}_imu_data.jsonl")
         zip_file.write(session['range_finder_data'], arcname=f"{session_id}_range_finder_data.jsonl")
+        zip_file.write(session['instructions_data'], arcname=f"{session_id}_instructions.txt")
 
     zip_buffer.seek(0)
     return zip_buffer

@@ -10,12 +10,6 @@ from session_manager import SessionManager
 
 
 class SensorFuser:
-    DIR_PATH = 'data\\Fusion\\'
-    RIGHT_PATH = DIR_PATH+'StereoRight'
-    LEFT_PATH = DIR_PATH+'StereoLeft'
-    IMU_PATH = DIR_PATH+'Imu'
-    RANGE_FINDER_PATH = DIR_PATH+'RangeFinder'
-    INSTRUCTIONS_PATH = DIR_PATH+'Instructions'
 
     def __init__(self, frame_rate=1, session_label="data collection"):
 

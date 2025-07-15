@@ -86,13 +86,15 @@ class SessionManager:
 
         shutil.copy(imu_session_file, session_package_dir)
         shutil.copy(range_finder_session_file, session_package_dir)
+        shutil.copy(self.instructions_session_file, session_package_dir)
 
         return {
             'session_id': session_id,
             'right_images': right_images_packaged_file,
             'left_images': left_images_packaged_file,
             'imu_data': imu_session_file,
-            'range_finder_data': range_finder_session_file
+            'range_finder_data': range_finder_session_file,
+            'instructions_data': self.instructions_session_file
         }
     
     def read_all_images_to_np(dir_path):
@@ -114,6 +116,7 @@ class SessionManager:
                 shutil.rmtree(os.path.join(self.LEFT_PATH, str(session['session_id'])), ignore_errors=True)
                 os.rmdir(os.path.join(self.IMU_PATH, str(session['session_id'])))
                 os.rmdir(os.path.join(self.RANGE_FINDER_PATH, str(session['session_id'])))
+                os.rmdir(os.path.join(self.INSTRUCTIONS_PATH, str(session['session_id'])))
         self.sessions = [session for session in self.sessions if session['session_id'] not in sessions_to_delete]
         with open(os.path.join(self.DIR_PATH, 'Sessions', 'session_data.jsonl'), "w") as f:
             for session in self.sessions:
