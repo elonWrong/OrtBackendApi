@@ -1,8 +1,8 @@
 import os
 import cv2 as cv
 import json
+import time
 
-from time import time
 from imu import IMU
 from camera import Camera
 from range_finder import RangeFinder
@@ -10,11 +10,11 @@ from session_manager import SessionManager
 
 
 class SensorFuser:
-    DIR_PATH = 'data\\Sensors\\'
-    RIGHT_PATH = DIR_PATH+'StereoRight'
-    LEFT_PATH = DIR_PATH+'StereoLeft'
-    IMU_PATH = DIR_PATH+'Imu'
-    RANGE_FINDER_PATH = DIR_PATH+'RangeFinder'
+    DIR_PATH = os.path.join('data', 'Sensors')
+    RIGHT_PATH = os.path.join(DIR_PATH, 'StereoRight')
+    LEFT_PATH = os.path.join(DIR_PATH, 'StereoLeft')
+    IMU_PATH = os.path.join(DIR_PATH, 'Imu')
+    RANGE_FINDER_PATH = os.path.join(DIR_PATH, 'RangeFinder')
 
     def __init__(self, session_label="data collection"):
 
@@ -55,8 +55,9 @@ class SensorFuser:
     
     def store_data(self, data):
         # Here you would implement the logic to store the data, e.g., in a database or file
-        right_image_path = f"{self.right_dir}/{data['timestamp']}_right.jpg"
-        left_image_path = f"{self.left_dir}/{data['timestamp']}_left.jpg"
+        timeStamp = str(data['timestamp']).replace('.', '_')
+        right_image_path = os.path.join(self.right_dir, f"{data['timestamp']}_right.jpg")
+        left_image_path = os.path.join(self.left_dir, f"{data['timestamp']}_left.jpg")
 
         cv.imwrite(right_image_path, data['right_camera'])
         cv.imwrite(left_image_path, data['left_camera'])
@@ -77,6 +78,13 @@ class SensorFuser:
                 data = self.collect_data()
                 self.store_data(data)
                 print(f"Data collected at {data['timestamp']}")
+
+                # 1 sec delay
+                time.sleep(1)
+
+                # interrupt when any key is pressed
+                if cv.waitKey(1) & 0xFF == ord('q'):
+                    break
         except KeyboardInterrupt:
             print("Data collection stopped.")
         finally:

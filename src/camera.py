@@ -34,7 +34,9 @@ class Camera:
             self.picam2.start()
         except ImportError:
             raise ImportError("picamera2 is not installed")
-
+        except Exception as e:
+            raise RuntimeError(f"Camera initialization failed: {e}")
+        
     def get_frame(self):
         return np.flipud(self.picam2.capture_array()) # Capture a frame as a numpy array
     
