@@ -4,12 +4,16 @@ import time
 
 class Controller:
 	
-	def __init__(self):
+	def __init__(self, sensor_manager):
 		self.motors = MotorController()
-		self.imu = IMU()
+		self.sensor_manager = sensor_manager
+		self.imu = self.sensor_manager.imu
+		self.session_manager = self.sensor_manager.session_manager
+		self.session_log_file = self.sensor_manager.instructions_session_file
 		self.currentOrientation = self.imu.getOrientation()
 		
 	def granular(self, instruction):
+		self.log_instruction(instruction)
 		self.motors.lf_activate(instruction.front_left/100)
 		self.motors.rf_activate(instruction.front_right/100)    
 		self.motors.lr_activate(instruction.rear_left/100)
@@ -106,6 +110,11 @@ class Controller:
 		
 		self.currentOrientation = self.imu.getOrientation()
 		print(f"Final Bearing: {self.currentOrientation['bearing']}")
+
+	def log_instruction(self, instruction):
+		instruction['timestamp'] = time.time()
+		with open(self.session_log_file, 'a') as file:
+			file.write(f"{instruction}\n")
 
 	def imuGenerateStream(self):
 		return self.imu.generateStream()

@@ -22,16 +22,8 @@ class IMU:
 		self.bus = smbus2.SMBus(1)
 		self.previousReading = None
 		self.session_readings = []
-		self.speed = {
-			"x": 0, 
-			"y": 0,
-			"z": 0
-		}
-		self.displacement = {
-			"x": 0, 
-			"y": 0,
-			"z": 0
-		}
+		self.resetDisplacement()
+		self.resetSpeed()
 
 	def resetSpeed(self):
 		self.speed = {
