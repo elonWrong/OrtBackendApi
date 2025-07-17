@@ -8,7 +8,7 @@ from picamera2 import Picamera2, Preview
 SENSOR_RESOLUTION = (4608, 2592)  # Full resolution of the sensor
 MAIN_RESOLUTION = (1280, 720)      # Resolution for the main output
 
-EXPOSURE = 30000
+EXPOSURE = 60000
 ISO = 200
 LENS_POSITION = 2.5
 AF_MODE = 0  

@@ -66,6 +66,7 @@ def video_feed(camera_id: int):
         return StreamingResponse(cams[camera_id].generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
     return {"error": "Camera not found"}
 
+###### THIS NEEDS TO BE REFACTORED ######
 @app.get("/imu")
 def get_imu_data():
     return StreamingResponse(controller.imuGenerateStream(), media_type="application/x-ndjson")

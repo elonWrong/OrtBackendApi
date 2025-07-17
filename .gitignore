@@ -25,6 +25,13 @@ env/
 # ignore the data directory
 data/ims/
 data/Sensors/*
+data/Fusion/Imu/*
+data/Fusion/RangeFinder/*
+data/Fusion/Instructions/*
+data/Fusion/StereoLeft/*
+data/Fusion/StereoRight/*
+data/Fusion/Sessions/*
+data/Fusion/SessionPackages/*
 
 # Installer logs
 pip-log.txt
