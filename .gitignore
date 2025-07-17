@@ -17,17 +17,30 @@ parts/
 sdist/
 var/
 venv/
+env/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# ignore the data directory
+data/ims/
+data/Sensors/*
+data/Fusion/Imu/*
+data/Fusion/RangeFinder/*
+data/Fusion/Instructions/*
+data/Fusion/StereoLeft/*
+data/Fusion/StereoRight/*
+data/Fusion/Sessions/*
+data/Fusion/SessionPackages/*
 
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit test / coverage reports / dev Environment
 .tox/
 .coverage
 .cache
 nosetests.xml
 coverage.xml
+OrtBackendApi.code-workspace
