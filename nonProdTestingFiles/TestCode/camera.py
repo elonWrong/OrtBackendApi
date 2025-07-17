@@ -1,5 +1,6 @@
 import time
 import cv2
+import numpy as np
 from picamera2 import Picamera2, Preview
 
 ## CAMERA CLASS HAS 2 SEPERATE FILES, UPDATE BOTH AS NEEDED
@@ -35,7 +36,7 @@ class Camera:
             raise ImportError("picamera2 is not installed")
 
     def get_frame(self):
-        return self.picam2.capture_array()  # Capture a frame as a numpy array
+        return np.flipud(self.picam2.capture_array())  # Capture a frame as a numpy array
     
     def generate_frames(self):
         while True:

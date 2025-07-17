@@ -17,6 +17,7 @@ def calibration_sequence():
         start_calibration(bus)
 
         instructions = [
+            ("Sitting still", 30),
             ("Rotate +45° around X-axis", 5),
             ("Rotate -45° around X-axis", 5),
             ("Rotate +45° around Y-axis", 5),
@@ -24,6 +25,9 @@ def calibration_sequence():
             ("Rotate +45° around Z-axis", 5),
             ("Rotate -45° around Z-axis", 5),
             ("Move in slow figure-8 pattern", 10),
+            ("Rotate 360° around X-axis", 10),
+            ("Rotate 360° around Y-axis", 10),
+            ("Rotate 360° around Z-axis", 10)
         ]
 
         for step, duration in instructions:
@@ -32,3 +36,4 @@ def calibration_sequence():
 
         end_calibration(bus)
 
+calibration_sequence()

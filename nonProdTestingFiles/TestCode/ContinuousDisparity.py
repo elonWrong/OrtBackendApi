@@ -185,12 +185,15 @@ def get_frames():
     left_frame = left_camera.get_frame()
     right_frame = right_camera.get_frame()
 
+    left_frame = cv.cvtColor(left_frame, cv.COLOR_BGR2RGB)
+    right_frame = cv.cvtColor(right_frame, cv.COLOR_BGR2RGB)
+
     rectifiedL, rectifiedR = rectify_images(left_frame, right_frame)
 
     if left_frame is None or right_frame is None:
         raise ValueError("Failed to capture frames from cameras.")
-    cv.imwrite(f"TestCode\\DepthImages\\left{frame_count}.jpg", left_frame)
-    cv.imwrite(f"TestCode\\DepthImages\\right{frame_count}.jpg", right_frame)
+    cv.imwrite(f"TestCode/DepthImages/left{frame_count}.jpg", left_frame)
+    cv.imwrite(f"TestCode/DepthImages/right{frame_count}.jpg", right_frame)
 
     return rectifiedL, rectifiedR
 
@@ -279,8 +282,8 @@ def main():
         key_pressed['pressed'] = False
         
         # Wait here until a key is pressed
-        while not key_pressed['pressed']:
-            plt.pause(0.1) 
+        # while not key_pressed['pressed']:
+        #     plt.pause(0.1) 
         #plt.pause(frame_duration)
         # Display the plot
         plt.tight_layout()
